@@ -29,9 +29,14 @@ class CrownInterface {
         password
       });
       
-      this.currentUser = await this.neurosity.getUser();
-      console.log(`Logged in as ${this.currentUser.email}`);
-      this.isConnected = true;
+      // Update: use onAuthStateChanged() instead of getUser()
+      this.neurosity.onAuthStateChanged().subscribe(user => {
+        if (user) {
+          this.currentUser = user;
+          console.log(`Logged in as ${this.currentUser.email}`);
+          this.isConnected = true;
+        }
+      });
       
       // Subscribe to status to monitor connection
       this.neurosity.status().subscribe(status => {

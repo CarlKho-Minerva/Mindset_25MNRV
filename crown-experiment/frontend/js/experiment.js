@@ -151,8 +151,81 @@ function positionElements() {
  * Show the Crown connection modal
  */
 function showConnectionModal() {
-  elements.connectionModal.style.display = 'flex';
-  elements.connectionModal.classList.add('fade-in');
+  // First check if environment variables are available
+  checkEnvironmentCredentials()
+    .then(hasCredentials => {
+      if (hasCredentials) {
+        // If credentials are available, connect directly
+        connectWithEnvironmentCredentials();
+      } else {
+        // Otherwise show the modal for manual input
+        elements.connectionModal.style.display = 'flex';
+        elements.connectionModal.classList.add('fade-in');
+      }
+    })
+    .catch(error => {
+      console.error('Error checking credentials:', error);
+      // Fall back to showing the modal
+      elements.connectionModal.style.display = 'flex';
+      elements.connectionModal.classList.add('fade-in');
+    });
+}
+
+/**
+ * Check if environment credentials are available on the server
+ */
+async function checkEnvironmentCredentials() {
+  try {
+    const response = await fetch('/api/crown/check-credentials');
+    const data = await response.json();
+    return data.hasCredentials;
+  } catch (error) {
+    console.error('Error checking credentials:', error);
+    return false;
+  }
+}
+
+/**
+ * Connect using environment credentials
+ */
+async function connectWithEnvironmentCredentials() {
+  // Disable connect button while connecting
+  elements.buttons.connect.disabled = true;
+  elements.buttons.connect.textContent = 'Connecting...';
+  updateConnectionStatus('connecting');
+  showStatusMessage('Connecting to Crown device using environment credentials...', 'info');
+  
+  try {
+    // Call the API to connect with environment variables
+    const response = await fetch('/api/crown/connect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ useEnvironment: true })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      config.state.isConnectedToCrown = true;
+      updateConnectionStatus('connected');
+      showStatusMessage('Successfully connected to Crown device!', 'success');
+      elements.buttons.connect.textContent = 'Disconnect Crown';
+      elements.buttons.connect.disabled = false;
+    } else {
+      updateConnectionStatus('disconnected');
+      showStatusMessage(`Connection failed: ${data.message}`, 'error');
+      elements.buttons.connect.textContent = 'Connect Crown';
+      elements.buttons.connect.disabled = false;
+    }
+  } catch (error) {
+    console.error('Connection error:', error);
+    updateConnectionStatus('disconnected');
+    showStatusMessage(`Connection error: ${error.message || 'Unknown error'}`, 'error');
+    elements.buttons.connect.textContent = 'Connect Crown';
+    elements.buttons.connect.disabled = false;
+  }
 }
 
 /**

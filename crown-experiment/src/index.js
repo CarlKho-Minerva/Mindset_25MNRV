@@ -27,6 +27,22 @@ if (!fs.existsSync(dataDir)) {
 }
 
 // API endpoints
+// Check if environment credentials are available
+app.get('/api/crown/check-credentials', (req, res) => {
+  const deviceId = process.env.DEVICE_ID;
+  const email = process.env.EMAIL;
+  const password = process.env.PASSWORD;
+  
+  const hasCredentials = Boolean(deviceId && email && password);
+  
+  return res.json({ 
+    hasCredentials,
+    message: hasCredentials ? 
+      'Environment credentials are available' : 
+      'Environment credentials not found'
+  });
+});
+
 app.post('/api/crown/connect', async (req, res) => {
   try {
     if (crownInterface && crownInterface.isConnected) {
