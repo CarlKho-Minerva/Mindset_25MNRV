@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Up-Down Inner Speech Experiment</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+    }
+    
+    #experiment-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .connection-panel {
+      background-color: #111;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .disconnected { background-color: #ff4545; }
+    .connecting { background-color: #f5d742; animation: blink 1s infinite; }
+    .connected { background-color: #4caf50; }
+    
+    @keyframes blink {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+    
+    .visualization-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chart-container {
+      flex: 1;
+      background-color: #111;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .experiment-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #111;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 200px;
+    }
+    
+    .direction-display {
+      font-size: 72px;
+      font-weight: bold;
+      margin: 20px 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .direction-display.show {
+      opacity: 1;
+    }
+    
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    .row {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #222;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+    }
+    
+    button:hover:not(:disabled) {
+      background-color: #333;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    button:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    
+    button.active {
+      background-color: #ffffff;
+      color: #000000;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .instructions {
+      text-align: center;
+      margin: 20px 0;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .progress-info {
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .connection-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background-color: #222;
+      color: white;
+    }
+    
+    .band-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 5px;
+    }
+    
+    .band-values {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .band-value {
+      background-color: #222;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .delta { color: #ff6b6b; }
+    .theta { color: #feca57; }
+    .alpha { color: #1dd1a1; }
+    .beta { color: #54a0ff; }
+    .gamma { color: #c56cf0; }
+    
+    #status-message {
+      margin-top: 10px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div id="experiment-container">
+    <div class="header">
+      <h1>Up-Down Inner Speech Experiment</h1>
+      <p>Record and analyze "up" and "down" inner speech patterns using Neurosity Crown</p>
+    </div>
+    
+    <div class="connection-panel">
+      <h2>Crown Connection</h2>
+      <div class="connection-form">
+        <div class="form-group">
+          <label for="device-id">Device ID</label>
+          <input type="text" id="device-id" placeholder="Enter Crown device ID">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Enter Neurosity email">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter Neurosity password">
+        </div>
+      </div>
+      
+      <div class="row" style="justify-content: flex-start; margin-top: 10px;">
+        <button id="btn-connect">Connect</button>
+      </div>
+      
+      <div class="status">
+        <div id="connection-status" class="status-dot disconnected"></div>
+        <span id="connection-text">Disconnected</span>
+      </div>
+      
+      <div id="status-message"></div>
+    </div>
+    
+    <div class="visualization-area">
+      <h2>Real-time EEG Visualization</h2>
+      <div class="chart-container">
+        <canvas id="brainwaves-chart"></canvas>
+      </div>
+      
+      <div class="band-values">
+        <div>
+          <div class="band-label">Delta (0.5-4 Hz)</div>
+          <div id="delta-value" class="band-value delta">0.00</div>
+        </div>
+        <div>
+          <div class="band-label">Theta (4-8 Hz)</div>
+          <div id="theta-value" class="band-value theta">0.00</div>
+        </div>
+        <div>
+          <div class="band-label">Alpha (8-13 Hz)</div>
+          <div id="alpha-value" class="band-value alpha">0.00</div>
+        </div>
+        <div>
+          <div class="band-label">Beta (13-30 Hz)</div>
+          <div id="beta-value" class="band-value beta">0.00</div>
+        </div>
+        <div>
+          <div class="band-label">Gamma (30-100 Hz)</div>
+          <div id="gamma-value" class="band-value gamma">0.00</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="experiment-area">
+      <h2>Experiment Controls</h2>
+      <div class="direction-display" id="direction-display">UP</div>
+      
+      <div class="instructions" id="instructions">
+        Follow the on-screen instructions. Think "UP" or "DOWN" when the word appears.
+      </div>
+      
+      <div class="row" style="margin-top: 20px;">
+        <button id="btn-start">Start Session (20 Trials)</button>
+        <button id="btn-stop" disabled>Stop Session</button>
+      </div>
+      
+      <div class="progress-info" id="progress-info"></div>
+    </div>
+  </div>
+
+  <script src="up-down.js"></script>
+</body>
+</html>
